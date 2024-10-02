@@ -3,35 +3,36 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider     = "postgresql"
+  url          = env("POSTGRES_PRISMA_URL")
+  relationMode = "prisma"
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   password  String
   name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   followUps FollowUp[]
 }
 
 model Client {
-  id           String    @id @default(uuid())
-  name         String
-  email        String    @unique
-  phone        String?
-  website      String?
-  ndaSigned    Boolean   @default(false)
-  dateSigned   DateTime?
-  introducedBy String?
-  speakingTo   String?
-  status       String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  followUps    FollowUp[]
-  nextFollowUpDate   DateTime?
+  id               String     @id @default(uuid())
+  name             String
+  email            String     @unique
+  phone            String?
+  website          String?
+  ndaSigned        Boolean    @default(false)
+  dateSigned       DateTime?
+  introducedBy     String?
+  speakingTo       String?
+  status           String
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  followUps        FollowUp[]
+  nextFollowUpDate DateTime?
 }
 
 model FollowUp {
@@ -41,7 +42,7 @@ model FollowUp {
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   date      DateTime
-  type      String   // e.g., "Call", "Email", "Meeting"
+  type      String // e.g., "Call", "Email", "Meeting"
   notes     String?
   nextSteps String?
   createdAt DateTime @default(now())
