@@ -59,6 +59,33 @@ export default function ClientPage({ params }) {
     }
   };
 
+  const handleSaveAnalysis = async (analysisToSave) => {
+    setIsSaving(true);
+    try {
+      console.log("Saving analysis:", analysisToSave);
+      const response = await fetch(`/api/clients/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysisResult: analysisToSave }), // Send only analysisResult for PATCH
+      });
+
+      if (!response.ok) throw new Error("Failed to save analysis");
+
+      setClient((prevClient) => ({
+        ...prevClient,
+        analysisResult: analysisToSave,
+      }));
+      setAnalysisResult(null); // Clear the temporary analysis result
+      return true; // Indicate success
+    } catch (err) {
+      console.error("Error saving analysis:", err);
+      setError(err.message);
+      return false; // Indicate failure
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async (updatedClient) => {
     setIsSaving(true);
     try {
@@ -160,6 +187,7 @@ export default function ClientPage({ params }) {
               onWebsiteUpdate={(newWebsite) =>
                 handleSave({ ...client, website: newWebsite })
               }
+              onSaveAnalysis={handleSaveAnalysis}
             />
           </div>
         }

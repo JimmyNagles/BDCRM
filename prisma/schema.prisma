@@ -33,6 +33,7 @@ model Client {
   updatedAt        DateTime   @updatedAt
   followUps        FollowUp[]
   nextFollowUpDate DateTime?
+  analysisResult   String?    @db.Text  
 }
 
 model FollowUp {
