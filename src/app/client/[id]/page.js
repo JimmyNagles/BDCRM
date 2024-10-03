@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import ClientForm from "../ClientForm";
-import FollowUpForm from "@/components/Dashboard/FollowUpForm";
-import FollowUpCard from "@/components/FollowUpCard";
+import FollowUpSection from "../FollowUpSection";
+import FollowUpList from "../FolloUpList";
+import Tabs from "../Tabs";
+import WebsiteAnalysis from "../WebsiteAnalysis";
 
 export default function ClientPage({ params }) {
   const { data: session } = useSession();
@@ -15,19 +17,25 @@ export default function ClientPage({ params }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [followUps, setFollowUps] = useState([]);
-  const [showFollowUpForm, setShowFollowUpForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("tabB");
+
+  // State for website analysis moved up to the parent component
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
+
   const router = useRouter();
   const { id } = params;
 
   useEffect(() => {
     const fetchClient = async () => {
       setIsLoading(true);
-      console.log("User ID from session:", session.user.id);
       try {
         const response = await fetch(`/api/clients/${id}`);
         if (!response.ok) throw new Error("Failed to fetch client");
         const data = await response.json();
-        console.log("client data", data);
+
+        console.log(data);
         setClient(data);
         fetchFollowUps(data.id);
       } catch (err) {
@@ -37,15 +45,14 @@ export default function ClientPage({ params }) {
       }
     };
 
-    fetchClient();
-  }, [id, session]);
+    if (session) fetchClient();
+  }, [id]);
 
   const fetchFollowUps = async (clientId) => {
     try {
       const response = await fetch(`/api/followups?clientId=${clientId}`);
       if (!response.ok) throw new Error("Failed to fetch follow-ups");
       const data = await response.json();
-      console.log("follow up data", data);
       setFollowUps(data.message ? [] : data);
     } catch (err) {
       setError(err.message);
@@ -61,8 +68,8 @@ export default function ClientPage({ params }) {
         body: JSON.stringify(updatedClient),
       });
       if (!response.ok) throw new Error("Failed to update client");
-      setClient(updatedClient);
 
+      setClient(updatedClient);
       setIsSaving(false);
     } catch (err) {
       setError(err.message);
@@ -71,7 +78,6 @@ export default function ClientPage({ params }) {
 
   const handleFollowUpAdded = async (newFollowUp) => {
     setFollowUps((prevFollowUps) => [newFollowUp, ...prevFollowUps]);
-    setShowFollowUpForm(false);
 
     if (newFollowUp.nextFollowUpDays) {
       const nextFollowUpDate = new Date();
@@ -82,12 +88,36 @@ export default function ClientPage({ params }) {
     }
   };
 
+  // Handle Website Analysis in the parent component
+  const handleWebsiteAnalysis = async (website) => {
+    setIsProcessing(true);
+    setAnalysisError(null);
+    setAnalysisResult(null);
+
+    try {
+      const response = await fetch("/api/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: website }),
+      });
+
+      if (!response.ok) throw new Error("Failed to scrape website");
+
+      const data = await response.json();
+      setAnalysisResult(data);
+    } catch (err) {
+      setAnalysisError(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (isLoading) return <div>Loading client details...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!client) return <div>Client not found</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="">
       <Link
         href="/dashboard"
         className="mb-4 inline-block text-blue-500 hover:text-blue-700"
@@ -95,40 +125,46 @@ export default function ClientPage({ params }) {
         ← Back to Dashboard
       </Link>
       <h1 className="text-3xl font-bold mb-6">{client.name}</h1>
-      <ClientForm client={client} onSave={handleSave} loading={isSaving} />
+      {/* Render Tabs with the three sections */}
+      <Tabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabA={
+          <div>
+            <ClientForm
+              client={client}
+              onSave={handleSave}
+              loading={isSaving}
+            />
 
-      <div className="mt-8 mb-4">
-        <button
-          onClick={() => setShowFollowUpForm(!showFollowUpForm)}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-          {showFollowUpForm ? "Hide Follow-up Form" : "Add Follow-up"}
-        </button>
-      </div>
+            <FollowUpSection
+              clientId={id}
+              userId={session.user.id}
+              onFollowUpAdded={handleFollowUpAdded}
+            />
 
-      {showFollowUpForm && (
-        <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <FollowUpForm
-            clientId={id}
-            userId={session.user.id}
-            onFollowUpAdded={handleFollowUpAdded}
-          />
-        </div>
-      )}
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Follow-ups</h2>
-        {followUps.length > 0 ? (
-          <ul>
-            {followUps.map((followUp) => (
-              <li className="mt-2 mb-2 shadow-2xl" key={followUp.id}>
-                <FollowUpCard followUp={followUp} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No follow-ups yet for this client.</p>
-        )}
-      </div>
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold mb-4">Follow-ups</h2>
+              <FollowUpList followUps={followUps} />
+            </div>
+          </div>
+        }
+        tabB={
+          <div>
+            <WebsiteAnalysis
+              client={client}
+              analysisResult={analysisResult}
+              isProcessing={isProcessing}
+              error={analysisError}
+              onAnalyzeWebsite={handleWebsiteAnalysis}
+              onWebsiteUpdate={(newWebsite) =>
+                handleSave({ ...client, website: newWebsite })
+              }
+            />
+          </div>
+        }
+        tabC={<div>AI Chat</div>}
+      />
     </div>
   );
 }
