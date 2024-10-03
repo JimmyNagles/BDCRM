@@ -54,7 +54,7 @@ const analyzeWithAI = async (data) => {
           },
           {
             role: "user",
-            content: `Here's a part of the raw HTML data from a website. Please format and structure it into a readable and well-organized format: \n\n ${chunk}`,
+            content: `Here's a full page of the raw HTML data from a website. Please format and structure it into a readable and well-organized format: \n\n ${chunk}`,
           },
         ],
         max_tokens: 1500,
