@@ -67,7 +67,7 @@ export default function FollowUpForm({ clientId, userId, onFollowUpAdded }) {
           value={formData.type}
           onChange={handleInputChange}
           required
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          className="mt-2 p-2 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm  focus:ring  focus:ring-opacity-50"
         >
           <option value="">Select type</option>
           <option value="Call">Call</option>
@@ -88,7 +88,7 @@ export default function FollowUpForm({ clientId, userId, onFollowUpAdded }) {
           value={formData.notes}
           onChange={handleInputChange}
           rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          className="mt-1 block w-full bg-gray-100 rounded-md border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
         ></textarea>
       </div>
       <div>
@@ -104,12 +104,12 @@ export default function FollowUpForm({ clientId, userId, onFollowUpAdded }) {
           name="nextSteps"
           value={formData.nextSteps}
           onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          className="mt-1 block w-full rounded-md bg-gray-100 p-2 border-gray-300 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50"
         />
       </div>
       <button
         type="submit"
-        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-black hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
       >
         Add Follow-up
       </button>
