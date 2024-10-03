@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 export default function WebsiteAnalysis({
   client,
@@ -9,11 +9,6 @@ export default function WebsiteAnalysis({
   onAnalyzeWebsite,
 }) {
   const [inputWebsite, setInputWebsite] = useState(client.website || "");
-  const [expandedPages, setExpandedPages] = useState({});
-
-  useEffect(() => {
-    console.log("Analysis Result:", analysisResult);
-  }, [analysisResult]);
 
   const handleWebsiteInput = () => {
     if (!inputWebsite) return;
@@ -21,32 +16,35 @@ export default function WebsiteAnalysis({
     onAnalyzeWebsite(inputWebsite);
   };
 
-  const togglePageExpansion = (index) => {
-    console.log("Toggling page:", index);
-    setExpandedPages((prev) => {
-      const newState = { ...prev, [index]: !prev[index] };
-      console.log("New expanded state:", newState);
-      return newState;
-    });
-  };
+  const renderAnalysisSection = (title, content) => (
+    <div className="mb-6">
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <div className="bg-white p-4 rounded shadow">
+        {content.split("\n").map((line, index) => (
+          <p key={index} className="mb-2">
+            {line}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
 
-  const renderPageContent = (page, index) => {
-    const isExpanded = expandedPages[index];
-    const content = page.content || "No content available";
-    console.log(`Page ${index} expanded:`, isExpanded);
-    console.log(`Page ${index} content length:`, content.length);
+  const renderAnalysis = () => {
+    if (!analysisResult || !analysisResult.analysis) return null;
+
+    const sections = analysisResult.analysis.split(/\[([A-Z ]+)\]/);
+    const renderedSections = [];
+
+    for (let i = 1; i < sections.length; i += 2) {
+      renderedSections.push(
+        renderAnalysisSection(sections[i], sections[i + 1].trim())
+      );
+    }
 
     return (
-      <div>
-        <pre className="text-xs bg-gray-50 p-2 rounded mt-2 whitespace-pre-wrap">
-          {isExpanded ? content : `${content.slice(0, 200)}...`}
-        </pre>
-        <button
-          className="mt-2 text-blue-500 underline"
-          onClick={() => togglePageExpansion(index)}
-        >
-          {isExpanded ? "Show Less" : "Show More"}
-        </button>
+      <div className="analysis-container">
+        <h2 className="text-2xl font-bold mb-6">Website Analysis</h2>
+        {renderedSections}
       </div>
     );
   };
@@ -76,16 +74,7 @@ export default function WebsiteAnalysis({
           {isProcessing ? (
             <div>Loading...analyzing {client.website}...</div>
           ) : analysisResult ? (
-            <div>
-              <h2 className="text-xl font-bold mb-4">Analysis Results</h2>
-              {analysisResult.pages.map((page, index) => (
-                <div key={index} className="mb-4 p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold">{page.page}</h3>
-                  <p>URL: {page.url}</p>
-                  {renderPageContent(page, index)}
-                </div>
-              ))}
-            </div>
+            renderAnalysis()
           ) : (
             <button
               className="bg-blue-500 text-white px-4 py-2 rounded"
