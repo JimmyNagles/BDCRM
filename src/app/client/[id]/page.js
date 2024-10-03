@@ -45,7 +45,7 @@ export default function ClientPage({ params }) {
       }
     };
 
-    if (session) fetchClient();
+    fetchClient();
   }, [id]);
 
   const fetchFollowUps = async (clientId) => {

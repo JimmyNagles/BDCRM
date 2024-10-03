@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function WebsiteAnalysis({
   client,
@@ -9,11 +9,46 @@ export default function WebsiteAnalysis({
   onAnalyzeWebsite,
 }) {
   const [inputWebsite, setInputWebsite] = useState(client.website || "");
+  const [expandedPages, setExpandedPages] = useState({});
+
+  useEffect(() => {
+    console.log("Analysis Result:", analysisResult);
+  }, [analysisResult]);
 
   const handleWebsiteInput = () => {
     if (!inputWebsite) return;
-    onWebsiteUpdate(inputWebsite); // Update the client with new website info
-    onAnalyzeWebsite(inputWebsite); // Call parent function to analyze
+    onWebsiteUpdate(inputWebsite);
+    onAnalyzeWebsite(inputWebsite);
+  };
+
+  const togglePageExpansion = (index) => {
+    console.log("Toggling page:", index);
+    setExpandedPages((prev) => {
+      const newState = { ...prev, [index]: !prev[index] };
+      console.log("New expanded state:", newState);
+      return newState;
+    });
+  };
+
+  const renderPageContent = (page, index) => {
+    const isExpanded = expandedPages[index];
+    const content = page.content || "No content available";
+    console.log(`Page ${index} expanded:`, isExpanded);
+    console.log(`Page ${index} content length:`, content.length);
+
+    return (
+      <div>
+        <pre className="text-xs bg-gray-50 p-2 rounded mt-2 whitespace-pre-wrap">
+          {isExpanded ? content : `${content.slice(0, 200)}...`}
+        </pre>
+        <button
+          className="mt-2 text-blue-500 underline"
+          onClick={() => togglePageExpansion(index)}
+        >
+          {isExpanded ? "Show Less" : "Show More"}
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -47,9 +82,7 @@ export default function WebsiteAnalysis({
                 <div key={index} className="mb-4 p-4 border-b border-gray-200">
                   <h3 className="text-lg font-semibold">{page.page}</h3>
                   <p>URL: {page.url}</p>
-                  <pre className="text-xs bg-gray-50 p-2 rounded">
-                    {page.content.slice(0, 200)}...
-                  </pre>
+                  {renderPageContent(page, index)}
                 </div>
               ))}
             </div>

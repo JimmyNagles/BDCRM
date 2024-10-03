@@ -1,128 +1,200 @@
-import { NextResponse } from "next/server";
-import axios from "axios";
-import * as cheerio from "cheerio";
-import OpenAI from "openai";
+import { useState, useEffect } from "react";
 
-// Initialize OpenAI client with API key
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+export default function ClientForm({ client, onSave }) {
+  const [formData, setFormData] = useState(client);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-// Function to scrape a page
-const scrapePage = async (url) => {
-  const { data } = await axios.get(url);
-  const $ = cheerio.load(data);
-  const content = $("body").html(); // Get the main HTML content
-  return content;
-};
+  useEffect(() => {
+    setFormData(client);
+  }, [client]);
 
-// Split content into smaller chunks
-const splitContent = (content, maxTokens = 1500) => {
-  const chunks = [];
-  let currentChunk = "";
+  const handleInputChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+  };
 
-  content.split(" ").forEach((word) => {
-    // Create chunks until max token limit is reached
-    if (currentChunk.length + word.length < maxTokens) {
-      currentChunk += `${word} `;
-    } else {
-      chunks.push(currentChunk.trim());
-      currentChunk = `${word} `;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setIsSubmitting(true); // Start submission process
+
+    try {
+      await onSave(formData); // Wait until onSave completes
+      // Optional: Show a success message
+    } catch (err) {
+      // Handle any errors from onSave here
+      console.error("Failed to save client details:", err);
+    } finally {
+      setIsSubmitting(false); // Reset submission state
     }
-  });
+  };
 
-  // Add the last chunk if it exists
-  if (currentChunk.length > 0) chunks.push(currentChunk.trim());
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className=" rounded-lg bg-white px-8 pt-6 pb-8 mb-4 grid gap-4 grid-cols-1 md:grid-cols-3"
+    >
+      {/* Name Input */}
+      <div className="w-full flex flex-col">
+        <label className="text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+          Name
+        </label>
+        <input
+          id="name"
+          type="text"
+          value={formData.name}
+          onChange={(e) => handleInputChange("name", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-  return chunks;
-};
+      {/* Email Input */}
+      <div className="w-full flex flex-col">
+        <label className="text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => handleInputChange("email", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-// Function to send data to OpenAI for analysis using OpenAI Node API client
-const analyzeWithAI = async (data) => {
-  try {
-    const chunks = splitContent(data, 1500); // Split the content into chunks
-    let combinedResponse = "";
+      {/* Introduced By Input */}
+      <div className="w-full flex flex-col">
+        <label
+          className="text-gray-700 text-sm font-bold mb-2"
+          htmlFor="introducedBy"
+        >
+          Introduced By
+        </label>
+        <input
+          id="introducedBy"
+          type="text"
+          value={formData.introducedBy}
+          onChange={(e) => handleInputChange("introducedBy", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-    // Send each chunk to the OpenAI API separately
-    for (const chunk of chunks) {
-      const response = await client.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `You are an AI assistant that helps structure raw HTML data into an organized book format for easy understanding.`,
-          },
-          {
-            role: "user",
-            content: `Here's a full page of the raw HTML data from a website. Please format and structure it into a readable and well-organized format: \n\n ${chunk}`,
-          },
-        ],
-        max_tokens: 1500,
-      });
+      {/* NDA Signed Checkbox */}
+      <div className="w-full flex items-center">
+        <label className="text-gray-700 text-sm font-bold" htmlFor="ndaSigned">
+          <input
+            id="ndaSigned"
+            type="checkbox"
+            checked={formData.ndaSigned}
+            onChange={(e) => handleInputChange("ndaSigned", e.target.checked)}
+            className="mr-2"
+          />
+          NDA Signed
+        </label>
+      </div>
 
-      // Concatenate the response text
-      combinedResponse += response.choices[0].message.content + "\n\n";
-    }
+      {/* Speaking To Input */}
+      <div className="w-full flex flex-col">
+        <label
+          className="text-gray-700 text-sm font-bold mb-2"
+          htmlFor="speakingTo"
+        >
+          Speaking To
+        </label>
+        <input
+          id="speakingTo"
+          type="text"
+          value={formData.speakingTo}
+          onChange={(e) => handleInputChange("speakingTo", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-    return combinedResponse;
-  } catch (error) {
-    console.error("AI Analysis error:", error);
-    throw new Error("Failed to analyze data with AI.");
-  }
-};
+      {/* Status Dropdown */}
+      <div className="w-full flex flex-col">
+        <label
+          className="text-gray-700 text-sm font-bold mb-2"
+          htmlFor="status"
+        >
+          Status
+        </label>
+        <select
+          id="status"
+          value={formData.status}
+          onChange={(e) => handleInputChange("status", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        >
+          <option value="Lead">Lead</option>
+          <option value="Meeting Scheduled">Meeting Scheduled</option>
+          <option value="Proposal Sent">Proposal Sent</option>
+          <option value="Negotiation">Negotiation</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
 
-// Main POST function for handling the API request
-export async function POST(request) {
-  const { url } = await request.json();
-  if (!url)
-    return NextResponse.json({ error: "URL is required." }, { status: 400 });
+      {/* Phone Input */}
+      <div className="w-full flex flex-col">
+        <label className="text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
+          Phone
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => handleInputChange("phone", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-  try {
-    // Initial page scrape
-    const { data } = await axios.get(url);
-    const $ = cheerio.load(data);
+      {/* Website Input */}
+      <div className="w-full flex flex-col">
+        <label
+          className="text-gray-700 text-sm font-bold mb-2"
+          htmlFor="website"
+        >
+          Website
+        </label>
+        <input
+          id="website"
+          type="url"
+          value={formData.website}
+          onChange={(e) => handleInputChange("website", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-    // Get basic info
-    const title = $("title").text();
-    const description = $('meta[name="description"]').attr("content");
+      {/* Next Follow-up Date Input */}
+      <div className="w-full flex flex-col">
+        <label
+          className="text-gray-700 text-sm font-bold mb-2"
+          htmlFor="nextFollowUpDate"
+        >
+          Next Follow-up Date
+        </label>
+        <input
+          id="nextFollowUpDate"
+          type="date"
+          value={
+            formData.nextFollowUpDate
+              ? new Date(formData.nextFollowUpDate).toISOString().split("T")[0]
+              : ""
+          }
+          onChange={(e) =>
+            handleInputChange("nextFollowUpDate", e.target.value)
+          }
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
 
-    // Scrape navigation links
-    const navLinks = [];
-    $("nav a").each((_, element) => {
-      const link = $(element).attr("href");
-      if (link && link.startsWith("/")) navLinks.push(`${url}${link}`);
-    });
-
-    // Collect content for each link
-    const pages = [
-      {
-        page: "Home",
-        url: url,
-        content: await scrapePage(url), // Initial page content
-      },
-    ];
-
-    // Loop through navLinks and collect content
-    for (const link of navLinks) {
-      const pageName = link.split("/").pop(); // Extract page name
-      const content = await scrapePage(link);
-      pages.push({ page: pageName, url: link, content });
-    }
-
-    // Combine all page contents into a single string for AI analysis
-    const combinedContent = pages
-      .map((page) => `Page: ${page.page}\nContent: ${page.content}`)
-      .join("\n\n");
-
-    // Send combined content to the AI for analysis
-    const aiResponse = await analyzeWithAI(combinedContent);
-
-    return NextResponse.json({ title, description, pages, aiResponse });
-  } catch (error) {
-    console.error("Scraping error:", error);
-    return NextResponse.json(
-      { error: "Failed to scrape the website." },
-      { status: 500 }
-    );
-  }
+      {/* Submit Button */}
+      <div className="md:col-span-3 mt-8 flex flex-row-reverse">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="bg-blue-500 disabled:bg-gray-400 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >
+          {isSubmitting ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
+    </form>
+  );
 }
