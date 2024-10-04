@@ -1,14 +1,11 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
 
 export async function PATCH(request, { params }) {
   try {
     const { id } = params;
     const body = await request.json();
 
-    // Extract the analysisResult string from the request body
     const { analysisResult } = body;
 
     if (!analysisResult || typeof analysisResult !== "string") {
@@ -17,9 +14,7 @@ export async function PATCH(request, { params }) {
 
     const updatedClient = await prisma.client.update({
       where: { id },
-      data: {
-        analysisResult, // Use the analysisResult value passed from the front-end
-      },
+      data: { analysisResult },
     });
 
     return NextResponse.json(updatedClient, { status: 200 });
@@ -29,10 +24,9 @@ export async function PATCH(request, { params }) {
       { error: "Error updating analysisResult: " + error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
+
 export async function PUT(request, { params }) {
   try {
     const { id } = params;
@@ -73,10 +67,9 @@ export async function PUT(request, { params }) {
       { error: "Error updating client: " + error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
+
 export async function GET(request, { params }) {
   try {
     const { id } = params;
@@ -95,7 +88,5 @@ export async function GET(request, { params }) {
       { error: "Error fetching client: " + error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
