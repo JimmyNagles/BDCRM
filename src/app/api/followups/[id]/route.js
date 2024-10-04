@@ -1,7 +1,5 @@
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
 
 export async function PUT(request, { params }) {
   const { id } = params;
@@ -26,6 +24,7 @@ export async function PUT(request, { params }) {
     });
     return NextResponse.json(updatedFollowUp);
   } catch (error) {
+    console.error("Error updating follow-up:", error);
     return NextResponse.json(
       { error: "Failed to update follow-up" },
       { status: 500 }
@@ -41,6 +40,7 @@ export async function DELETE(request, { params }) {
     });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
+    console.error("Error deleting follow-up:", error);
     return NextResponse.json(
       { error: "Failed to delete follow-up" },
       { status: 500 }

@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
 
 export async function POST(request) {
   try {
@@ -16,7 +14,7 @@ export async function POST(request) {
       introducedBy,
       speakingTo,
       status,
-      nextFollowUpDate, // Add this line
+      nextFollowUpDate,
     } = body;
 
     const newClient = await prisma.client.create({
@@ -30,7 +28,7 @@ export async function POST(request) {
         introducedBy,
         speakingTo,
         status,
-        nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate) : null, // Add this line
+        nextFollowUpDate: nextFollowUpDate ? new Date(nextFollowUpDate) : null,
       },
     });
 
@@ -41,8 +39,6 @@ export async function POST(request) {
       { error: "Error creating client: " + error.message },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -60,7 +56,5 @@ export async function GET() {
       { error: "Error fetching clients" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
