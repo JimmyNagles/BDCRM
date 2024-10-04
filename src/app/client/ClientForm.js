@@ -15,21 +15,27 @@ export default function ClientForm({ client, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    onSave(formData);
+    setIsSubmitting(true); // Start submission process
 
-    setIsSubmitting(false);
+    try {
+      await onSave(formData); // Wait until onSave completes
+      // Optional: Show a success message
+    } catch (err) {
+      // Handle any errors from onSave here
+      console.error("Failed to save client details:", err);
+    } finally {
+      setIsSubmitting(false); // Reset submission state
+    }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+      className=" rounded-lg bg-white px-8 pt-6 pb-8 mb-4 grid gap-4 grid-cols-1 md:grid-cols-3"
     >
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="name"
-        >
+      {/* Name Input */}
+      <div className="w-full flex flex-col">
+        <label className="text-gray-700 text-sm font-bold mb-2" htmlFor="name">
           Name
         </label>
         <input
@@ -37,14 +43,13 @@ export default function ClientForm({ client, onSave }) {
           type="text"
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
         />
       </div>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="email"
-        >
+
+      {/* Email Input */}
+      <div className="w-full flex flex-col">
+        <label className="text-gray-700 text-sm font-bold mb-2" htmlFor="email">
           Email
         </label>
         <input
@@ -52,27 +57,14 @@ export default function ClientForm({ client, onSave }) {
           type="email"
           value={formData.email}
           onChange={(e) => handleInputChange("email", e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
         />
       </div>
-      <div className="mb-4">
+
+      {/* Introduced By Input */}
+      <div className="w-full flex flex-col">
         <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="ndaSigned"
-        >
-          <input
-            id="ndaSigned"
-            type="checkbox"
-            checked={formData.ndaSigned}
-            onChange={(e) => handleInputChange("ndaSigned", e.target.checked)}
-            className="mr-2 leading-tight"
-          />
-          NDA Signed
-        </label>
-      </div>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="text-gray-700 text-sm font-bold mb-2"
           htmlFor="introducedBy"
         >
           Introduced By
@@ -82,12 +74,28 @@ export default function ClientForm({ client, onSave }) {
           type="text"
           value={formData.introducedBy}
           onChange={(e) => handleInputChange("introducedBy", e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
         />
       </div>
-      <div className="mb-4">
+
+      {/* NDA Signed Checkbox */}
+      <div className="w-full flex items-center">
+        <label className="text-gray-700 text-sm font-bold" htmlFor="ndaSigned">
+          <input
+            id="ndaSigned"
+            type="checkbox"
+            checked={formData.ndaSigned}
+            onChange={(e) => handleInputChange("ndaSigned", e.target.checked)}
+            className="mr-2"
+          />
+          NDA Signed
+        </label>
+      </div>
+
+      {/* Speaking To Input */}
+      <div className="w-full flex flex-col">
         <label
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="text-gray-700 text-sm font-bold mb-2"
           htmlFor="speakingTo"
         >
           Speaking To
@@ -97,12 +105,14 @@ export default function ClientForm({ client, onSave }) {
           type="text"
           value={formData.speakingTo}
           onChange={(e) => handleInputChange("speakingTo", e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
         />
       </div>
-      <div className="mb-4">
+
+      {/* Status Dropdown */}
+      <div className="w-full flex flex-col">
         <label
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="text-gray-700 text-sm font-bold mb-2"
           htmlFor="status"
         >
           Status
@@ -111,7 +121,7 @@ export default function ClientForm({ client, onSave }) {
           id="status"
           value={formData.status}
           onChange={(e) => handleInputChange("status", e.target.value)}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
         >
           <option value="Lead">Lead</option>
           <option value="Meeting Scheduled">Meeting Scheduled</option>
@@ -120,9 +130,42 @@ export default function ClientForm({ client, onSave }) {
           <option value="Closed">Closed</option>
         </select>
       </div>
-      <div className="mb-4">
+
+      {/* Phone Input */}
+      <div className="w-full flex flex-col">
+        <label className="text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
+          Phone
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => handleInputChange("phone", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
+
+      {/* Website Input */}
+      <div className="w-full flex flex-col">
         <label
-          className="block text-gray-700 text-sm font-bold mb-2"
+          className="text-gray-700 text-sm font-bold mb-2"
+          htmlFor="website"
+        >
+          Website
+        </label>
+        <input
+          id="website"
+          type="url"
+          value={formData.website}
+          onChange={(e) => handleInputChange("website", e.target.value)}
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
+        />
+      </div>
+
+      {/* Next Follow-up Date Input */}
+      <div className="w-full flex flex-col">
+        <label
+          className="text-gray-700 text-sm font-bold mb-2"
           htmlFor="nextFollowUpDate"
         >
           Next Follow-up Date
@@ -138,19 +181,16 @@ export default function ClientForm({ client, onSave }) {
           onChange={(e) =>
             handleInputChange("nextFollowUpDate", e.target.value)
           }
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="p-2 rounded-lg text-gray-700 bg-gray-100 focus:outline-none focus:shadow-outline"
         />
       </div>
-      <div className="flex items-center justify-between">
+
+      {/* Submit Button */}
+      <div className="md:col-span-3 mt-8 flex flex-row-reverse">
         <button
           type="submit"
           disabled={isSubmitting}
-          onClick={() => (e) => {
-            e.preventDefault();
-            console.log("clicked");
-            setIsSubmitting(true);
-          }}
-          className="bg-blue-500 disabled:bg-slate-400 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          className="bg-blue-500 disabled:bg-gray-400 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         >
           {isSubmitting ? "Saving..." : "Save Changes"}
         </button>
